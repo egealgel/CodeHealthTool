@@ -24,6 +24,30 @@ GENERIC_REGEX = re.compile(
 MERGE_REGEX = re.compile(r"^merge\s+(branch|pull|remote-tracking)", re.IGNORECASE)
 REVERT_REGEX = re.compile(r"^revert\s+", re.IGNORECASE)
 
+# Release / version tag commits — intentionally short, skip linting.
+RELEASE_TAG_REGEX = re.compile(
+    r"^(release\s+)?v?\d+\.\d+(\.\d+)?([._\-]?(a|b|rc|alpha|beta|dev|post)\d*)?$",
+    re.IGNORECASE,
+)
+
+# Issue-closing convention used by Django, Rails, etc.
+# "Fixed #NNNN -- ...", "Closes #NNN ...", "Resolves GH-123 ..."
+ISSUE_CLOSE_REGEX = re.compile(
+    r"^(fix(ed|es)?|close[ds]?|resolve[ds]?)\s+(#|gh[-_]?)\d+",
+    re.IGNORECASE,
+)
+
+# Things to strip before measuring "non-letter density":
+#   trailing/inline PR refs   "(#1234)"  or "#1234"
+#   leading bracketed tags    "[CD]", "[BUGFIX]"
+#   conventional prefixes     "feat:", "fix(scope):", "DOC:"
+_NOISE_PATTERNS = [
+    re.compile(r"\(#\d+\)"),
+    re.compile(r"(?<!\w)#\d+"),
+    re.compile(r"\[[^\]]+\]"),
+    re.compile(r"^[A-Za-z]+(\([^)]+\))?:\s*"),
+]
+
 
 @dataclass(frozen=True)
 class Finding:
@@ -69,6 +93,8 @@ def _check_commit(c: Commit) -> list[Finding]:
 
     if MERGE_REGEX.match(msg) or REVERT_REGEX.match(msg):
         return out
+    if RELEASE_TAG_REGEX.match(msg):
+        return out
 
     lowered = msg.lower().rstrip(".!?")
 
@@ -95,13 +121,19 @@ def _check_commit(c: Commit) -> list[Finding]:
         out.append(Finding(c.sha, msg, "warn", "single-word",
                            "single-word commit message"))
 
-    if msg:
-        non_letter = sum(1 for ch in msg if not ch.isalpha() and not ch.isspace())
-        if non_letter / len(msg) > 0.5:
+    normalized = _strip_noise(msg)
+    if normalized:
+        # version numbers (0.15.10) and identifiers count as content;
+        # only formatting/punctuation noise should drive this rule
+        non_content = sum(
+            1 for ch in normalized
+            if not ch.isalnum() and not ch.isspace()
+        )
+        if non_content / len(normalized) > 0.5:
             out.append(Finding(c.sha, msg, "warn", "non-letter-heavy",
                                "more than 50% non-letter characters"))
 
-    if words:
+    if words and not ISSUE_CLOSE_REGEX.match(msg):
         first = words[0].lower()
         if first.endswith("ed") or first.endswith("ing"):
             if not any(f.severity == "bad" for f in out):
@@ -109,6 +141,13 @@ def _check_commit(c: Commit) -> list[Finding]:
                                    f"'{words[0]}' is not imperative mood"))
 
     return out
+
+
+def _strip_noise(msg: str) -> str:
+    out = msg
+    for pat in _NOISE_PATTERNS:
+        out = pat.sub("", out)
+    return out.strip()
 
 
 def _is_single_repeated_char(s: str) -> bool:
