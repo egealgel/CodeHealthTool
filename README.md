@@ -5,7 +5,8 @@ Python projeleri için iki basit kontrol yapan küçük bir CLI:
 1. **Dead code bulucu** — AST analizi ile hiç çağrılmayan fonksiyon, sınıf ve metotları tespit eder.
 2. **Commit kalite analizi** — `fix bug`, `asdf`, `wip` gibi anlamsız commit mesajlarını yakalar.
 
-Üçüncü-parti çalışma zamanı bağımlılığı yok; yalnızca standart kütüphane.
+Bu tool'un fark yarattığı yer: bir paket bağımlılığı olmaması ve commit kalitesini de aynı CLI'da sunması. Kapsamı internal application/service kod tabanları — Flask/Django uygulamaları, CLI'lar, mikroservisler, dahili scriptler. Yani public API'si olmayan, "kendisini kendisi çağıran" kod tabanları.
+
 
 ## Kurulum
 
