@@ -1,0 +1,15 @@
+0000001	feat: add password reset endpoint with rate limiting	Alice
+0000002	fix(auth): correct JWT expiry handling for refresh tokens	Bob
+0000003	chore: bump dependencies to latest minor versions	Carol
+0000004	Refactored the cache invalidation logic to avoid races	Dan
+0000005	Fixing typo in readme	Eve
+0000006	WIP	Frank
+0000007	wip wip wip	Greg
+0000008	.	Hank
+0000009	Merge pull request #42 from feature/x	Auto
+0000010	Revert "feat: add password reset endpoint with rate limiting"	Auto
+0000011	🐛 fix segfault in image resizer	Iris
+0000012	            	Jenny
+0000013	final fix???	Kris
+0000014	1234567890	Leo
+0000015	Add comprehensive integration tests for payment flow	Mia

@@ -1,0 +1,9 @@
+Metadata-Version: 2.4
+Name: codehealth
+Version: 0.1.0
+Summary: Dead-code and commit-quality checks for Python projects
+Author: CodeHealthTool
+License: MIT
+Requires-Python: >=3.9
+Provides-Extra: test
+Requires-Dist: pytest>=7; extra == "test"
